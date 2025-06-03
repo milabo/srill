@@ -23,7 +23,8 @@ struct Args {
     lambda: String,
 }
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     sub::subscribe(&args.redis_url, &args.channel, move |body| {
         let event = match args.mode {
