@@ -13,7 +13,7 @@ mod sub;
     arg_required_else_help = true,
 )]
 struct Args {
-    #[clap(long, value_parser)]
+    #[clap(long, value_parser, default_value = "redis://localhost:6379")]
     redis_url: String,
     #[clap(long, value_parser, default_value = "sqs")]
     mode: mode::Mode,
