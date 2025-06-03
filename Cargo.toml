@@ -1,7 +1,7 @@
 [package]
 name = "srill"
 description = "Subscribe Redis and Invoke Lambda with cargo lambda, for Local development."
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 license = "MIT"
 

@@ -3,6 +3,15 @@ pub enum Mode {
     Sqs,
 }
 
+impl std::fmt::Display for Mode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mode_str = match self {
+            Mode::Sqs => "sqs",
+        };
+        write!(f, "{}", mode_str)
+    }
+}
+
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct SqsEvent {
     #[serde(rename = "Records")]

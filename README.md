@@ -5,8 +5,14 @@ Subscribe Redis and Invoke Lambda with cargo lambda, for Local development.
 
 ## Usage
 
+First, run cargo lambda watch:
 ```sh
-srill --redis-url redis://localhost:6379 --mode sqs <channel name> <lambda binary name>
+cargo lambda watch
+```
+
+Start srill:
+```sh
+srill <channel name> <lambda binary name>
 ```
 
 Then publish a message to redis:
@@ -37,6 +43,15 @@ The lambda function will be invoked with SQS event.
     ]
 }
 ```
+
+### Options
+
+- `--redis-url`: Redis URL
+    - default: `redis://localhost:6379`
+- `--mode`: Type of Lambda event
+    - default: `sqs`
+    - available:
+        - `sqs` (SQS event)
 
 ## License
 
