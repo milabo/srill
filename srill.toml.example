@@ -1,0 +1,15 @@
+# Srill Configuration File Example
+# Copy this file to srill.toml and modify as needed
+
+# Redis connection URL (optional, overrides --redis-url)
+redis_url = "redis://localhost:6379"
+
+# Lambda event type (optional, overrides --mode)
+mode = "sqs"
+
+# Channel to Lambda function mappings
+[channels]
+user-events = "user-lambda"
+order-events = "order-lambda"
+notification-events = "notification-lambda"
+analytics-events = "analytics-lambda"

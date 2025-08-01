@@ -2,6 +2,13 @@
 
 Subscribe Redis and Invoke Lambda with cargo lambda, for Local development.
 
+## Features
+
+- Subscribe to multiple Redis channels simultaneously
+- Invoke different Lambda functions for each channel
+- Support for configuration files (TOML format)
+- Backward compatibility with single channel mode
+- Parallel processing of multiple channels
 
 ## Usage
 
@@ -10,17 +17,46 @@ First, run cargo lambda watch:
 cargo lambda watch
 ```
 
-Start srill:
+### Multiple Channels (Recommended)
+
+Start srill with multiple channel-lambda pairs:
+```sh
+srill --channels channel1=lambda-function1,channel2=lambda-function2,channel3=lambda-function3
+```
+
+### Configuration File
+
+Create a `srill.toml` configuration file:
+```toml
+redis_url = "redis://localhost:6379"
+mode = "sqs"
+
+[channels]
+channel1 = "lambda-function1"
+channel2 = "lambda-function2"
+channel3 = "lambda-function3"
+```
+
+Then start srill:
+```sh
+srill --config srill.toml
+```
+
+### Legacy Single Channel Mode
+
+Start srill (legacy mode):
 ```sh
 srill <channel name> <lambda binary name>
 ```
+
+### Publishing Messages
 
 Then publish a message to redis:
 ```sh
 redis-cli publish <channel name> "Test message."
 ```
 
-The lambda function will be invoked with SQS event.
+The corresponding lambda function will be invoked with SQS event.
 
 ```json
 {
@@ -46,12 +82,23 @@ The lambda function will be invoked with SQS event.
 
 ### Options
 
-- `--redis-url`: Redis URL
-    - default: `redis://localhost:6379`
-- `--mode`: Type of Lambda event
-    - default: `sqs`
-    - available:
-        - `sqs` (SQS event)
+- `--redis-url`: Redis URL (default: `redis://localhost:6379`)
+- `--mode`: Lambda event type (default: `sqs`)
+- `--channels`: Channel-Lambda pairs in format `channel1=lambda1,channel2=lambda2`
+- `--config`: Path to TOML configuration file
+
+### Examples
+
+```sh
+# Multiple channels via command line
+srill --redis-url redis://localhost:6379 --mode sqs --channels user-events=user-lambda,order-events=order-lambda
+
+# Using configuration file
+srill --config ./config/srill.toml
+
+# Legacy single channel (backward compatibility)
+srill my-channel my-lambda
+```
 
 ## License
 
