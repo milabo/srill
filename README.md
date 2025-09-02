@@ -74,7 +74,27 @@ The corresponding lambda function will be invoked with SQS event.
             },
             "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:SQSQueue",
             "eventSource": "aws:sqs",
-            "awsRegion": "ap-northeast-1"
+            "awsRegion": "ap-northeast-1",
+            "messageAttributes": {
+                "Attribute3": {
+                    "binaryValue": "MTEwMA==",
+                    "stringListValues": ["abc", "123"],
+                    "binaryListValues": ["MA==", "MQ==", "MA=="],
+                    "dataType": "Binary"
+                },
+                "Attribute2": {
+                    "stringValue": "123",
+                    "stringListValues": [],
+                    "binaryListValues": ["MQ==", "MA=="],
+                    "dataType": "Number"
+                },
+                "Attribute1": {
+                    "stringValue": "AttributeValue1",
+                    "stringListValues": [],
+                    "binaryListValues": [],
+                    "dataType": "String"
+                }
+            }
         }
     ]
 }
