@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Debug, Clone, clap::ValueEnum)]
 pub enum Mode {
     Sqs,
@@ -8,7 +10,7 @@ impl std::fmt::Display for Mode {
         let mode_str = match self {
             Mode::Sqs => "sqs",
         };
-        write!(f, "{}", mode_str)
+        write!(f, "{mode_str}")
     }
 }
 
@@ -19,9 +21,9 @@ pub struct SqsEvent {
 }
 
 impl SqsEvent {
-    pub fn new(body: &str) -> Self {
+    pub fn new(body: &str, message_attributes: HashMap<String, MessageAttribute>) -> Self {
         Self {
-            records: vec![SqsRecord::new(body)],
+            records: vec![SqsRecord::new(body, message_attributes)],
         }
     }
 }
@@ -38,10 +40,11 @@ pub struct SqsRecord {
     pub event_source: String,
     pub aws_region: String,
     pub attributes: SqsRecordAttributes,
+    pub message_attributes: HashMap<String, MessageAttribute>,
 }
 
 impl SqsRecord {
-    pub fn new(body: &str) -> Self {
+    pub fn new(body: &str, message_attributes: HashMap<String, MessageAttribute>) -> Self {
         let message_id = uuid::Uuid::new_v4().to_string();
         let receipt_handle = uuid::Uuid::new_v4().to_string();
         let md5_of_body = format!("{:x}", md5::compute(body));
@@ -55,6 +58,7 @@ impl SqsRecord {
             event_source: "aws:sqs".to_string(),
             aws_region: "ap-northeast-1".to_string(),
             attributes: SqsRecordAttributes::default(),
+            message_attributes,
         }
     }
 }
@@ -77,4 +81,25 @@ impl Default for SqsRecordAttributes {
             approximate_first_receive_timestamp: "1520621634884".to_string(),
         }
     }
+}
+
+// reference: https://docs.aws.amazon.com/ja_jp/AWSSimpleQueueService/latest/APIReference/API_MessageAttributeValue.html
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MessageAttribute {
+    pub data_type: MessageAttributeDataType,
+    pub binary_list_values: Option<Vec<String>>,
+    pub binary_value: Option<String>,
+    pub string_list_values: Option<Vec<String>>,
+    pub string_value: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub enum MessageAttributeDataType {
+    String,
+    Number,
+    Binary,
+    // TODO: Add Custom DataType
+    // https://docs.aws.amazon.com/ja_jp/AWSSimpleQueueService/latest/APIReference/API_MessageAttributeValue.html#API_MessageAttributeValue_Contents
 }
