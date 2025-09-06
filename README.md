@@ -29,7 +29,6 @@ srill --channels channel1=lambda-function1,channel2=lambda-function2,channel3=la
 Create a `srill.toml` configuration file:
 ```toml
 redis_url = "redis://localhost:6379"
-mode = "sqs"
 
 [channels]
 channel1 = "lambda-function1"
@@ -74,7 +73,27 @@ The corresponding lambda function will be invoked with SQS event.
             },
             "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:SQSQueue",
             "eventSource": "aws:sqs",
-            "awsRegion": "ap-northeast-1"
+            "awsRegion": "ap-northeast-1",
+            "messageAttributes": {
+                "Attribute3": {
+                    "binaryValue": "MTEwMA==",
+                    "stringListValues": ["abc", "123"],
+                    "binaryListValues": ["MA==", "MQ==", "MA=="],
+                    "dataType": "Binary"
+                },
+                "Attribute2": {
+                    "stringValue": "123",
+                    "stringListValues": [],
+                    "binaryListValues": ["MQ==", "MA=="],
+                    "dataType": "Number"
+                },
+                "Attribute1": {
+                    "stringValue": "AttributeValue1",
+                    "stringListValues": [],
+                    "binaryListValues": [],
+                    "dataType": "String"
+                }
+            }
         }
     ]
 }
@@ -83,7 +102,6 @@ The corresponding lambda function will be invoked with SQS event.
 ### Options
 
 - `--redis-url`: Redis URL (default: `redis://localhost:6379`)
-- `--mode`: Lambda event type (default: `sqs`)
 - `--channels`: Channel-Lambda pairs in format `channel1=lambda1,channel2=lambda2`
 - `--config`: Path to TOML configuration file
 
@@ -91,7 +109,7 @@ The corresponding lambda function will be invoked with SQS event.
 
 ```sh
 # Multiple channels via command line
-srill --redis-url redis://localhost:6379 --mode sqs --channels user-events=user-lambda,order-events=order-lambda
+srill --redis-url redis://localhost:6379 --channels user-events=user-lambda,order-events=order-lambda
 
 # Using configuration file
 srill --config ./config/srill.toml
