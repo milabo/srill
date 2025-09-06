@@ -902,7 +902,7 @@ dependencies = [
 
 [[package]]
 name = "srill"
-version = "0.3.1"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "aws_lambda_events",

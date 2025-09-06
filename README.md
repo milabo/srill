@@ -7,8 +7,6 @@ Subscribe Redis and Invoke Lambda with cargo lambda, for Local development.
 - Subscribe to multiple Redis channels simultaneously
 - Invoke different Lambda functions for each channel
 - Support for configuration files (TOML format)
-- Backward compatibility with single channel mode
-- Parallel processing of multiple channels
 
 ## Usage
 
@@ -17,7 +15,7 @@ First, run cargo lambda watch:
 cargo lambda watch
 ```
 
-### Multiple Channels (Recommended)
+### Multiple Channels
 
 Start srill with multiple channel-lambda pairs:
 ```sh
@@ -41,21 +39,41 @@ Then start srill:
 srill --config srill.toml
 ```
 
-### Legacy Single Channel Mode
+### Single Channel Mode
 
-Start srill (legacy mode):
+Start srill:
 ```sh
 srill <channel name> <lambda binary name>
 ```
 
-### Publishing Messages
+## Publishing Messages
 
-Then publish a message to redis:
-```sh
-redis-cli publish <channel name> "Test message."
+### Publishing SQS Events
+
+Publishers should create and publish SQS event JSON:
+
+```rust
+use redis::Commands;
+use srill::events::sqs::{SqsEvent, SqsMessage};
+use serde_json;
+
+fn publish_message(conn: &mut redis::Connection) -> Result<(), Box<dyn std::error::Error>> {
+    // Customize this event as you like.
+    let event = SqsEvent {
+        records: vec![SqsMessage {
+            body: Some("Test message.".to_string()),
+            ..Default::default()
+        }],
+    };
+
+    let _: () = conn.publish("<channel_name>", &serde_json::to_string(&event)?)?;
+    Ok(())
+}
 ```
 
-The corresponding lambda function will be invoked with SQS event.
+## Message Format
+
+The Lambda function receives the complete SQS event as published to Redis:
 
 ```json
 {
@@ -114,7 +132,7 @@ srill --redis-url redis://localhost:6379 --channels user-events=user-lambda,orde
 # Using configuration file
 srill --config ./config/srill.toml
 
-# Legacy single channel (backward compatibility)
+# Single channel
 srill my-channel my-lambda
 ```
 
