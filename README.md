@@ -48,14 +48,34 @@ Start srill (legacy mode):
 srill <channel name> <lambda binary name>
 ```
 
-### Publishing Messages
+## Publishing Messages
 
-Then publish a message to redis:
-```sh
-redis-cli publish <channel name> "Test message."
+### Publishing SQS Events
+
+Publishers should create and publish SQS event JSON:
+
+```rust
+use redis::Commands;
+use srill::events::sqs::{SqsEvent, SqsMessage};
+use serde_json;
+
+fn publish_message(conn: &mut redis::Connection) -> Result<(), Box<dyn std::error::Error>> {
+    // Customize this event as you like.
+    let event = SqsEvent {
+        records: vec![SqsMessage {
+            body: Some("Test message.".to_string()),
+            ..Default::default()
+        }],
+    };
+
+    let _: () = conn.publish("<channel_name>", &serde_json::to_string(&event)?)?;
+    Ok(())
+}
 ```
 
-The corresponding lambda function will be invoked with SQS event.
+## Message Format
+
+The Lambda function receives the complete SQS event as published to Redis:
 
 ```json
 {
