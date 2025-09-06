@@ -7,8 +7,6 @@ Subscribe Redis and Invoke Lambda with cargo lambda, for Local development.
 - Subscribe to multiple Redis channels simultaneously
 - Invoke different Lambda functions for each channel
 - Support for configuration files (TOML format)
-- Backward compatibility with single channel mode
-- Parallel processing of multiple channels
 
 ## Usage
 
@@ -17,7 +15,7 @@ First, run cargo lambda watch:
 cargo lambda watch
 ```
 
-### Multiple Channels (Recommended)
+### Multiple Channels
 
 Start srill with multiple channel-lambda pairs:
 ```sh
@@ -41,9 +39,9 @@ Then start srill:
 srill --config srill.toml
 ```
 
-### Legacy Single Channel Mode
+### Single Channel Mode
 
-Start srill (legacy mode):
+Start srill:
 ```sh
 srill <channel name> <lambda binary name>
 ```
@@ -134,7 +132,7 @@ srill --redis-url redis://localhost:6379 --channels user-events=user-lambda,orde
 # Using configuration file
 srill --config ./config/srill.toml
 
-# Legacy single channel (backward compatibility)
+# Single channel
 srill my-channel my-lambda
 ```
 
