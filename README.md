@@ -1,5 +1,10 @@
 # srill
 
+[![CI](https://github.com/milabo/srill/actions/workflows/ci.yml/badge.svg)](https://github.com/milabo/srill/actions/workflows/ci.yml)
+[![crate](https://img.shields.io/crates/v/srill.svg)](https://crates.io/crates/srill)
+[![documentation](https://docs.rs/srill/badge.svg)](https://docs.rs/srill)
+[![minimum rustc 1.90](https://img.shields.io/badge/rustc-1.90+-red.svg)](https://rust-lang.github.io/rfcs/2495-min-rust-version.html)
+
 Subscribe Redis and Invoke Lambda with cargo lambda, for Local development.
 
 ## Features
@@ -11,6 +16,7 @@ Subscribe Redis and Invoke Lambda with cargo lambda, for Local development.
 ## Usage
 
 First, run cargo lambda watch:
+
 ```sh
 cargo lambda watch
 ```
@@ -18,6 +24,7 @@ cargo lambda watch
 ### Multiple Channels
 
 Start srill with multiple channel-lambda pairs:
+
 ```sh
 srill --channels channel1=lambda-function1,channel2=lambda-function2,channel3=lambda-function3
 ```
@@ -25,6 +32,7 @@ srill --channels channel1=lambda-function1,channel2=lambda-function2,channel3=la
 ### Configuration File
 
 Create a `srill.toml` configuration file:
+
 ```toml
 redis_url = "redis://localhost:6379"
 
@@ -35,6 +43,7 @@ channel3 = "lambda-function3"
 ```
 
 Then start srill:
+
 ```sh
 srill --config srill.toml
 ```
@@ -42,6 +51,7 @@ srill --config srill.toml
 ### Single Channel Mode
 
 Start srill:
+
 ```sh
 srill <channel name> <lambda binary name>
 ```
@@ -77,43 +87,43 @@ The Lambda function receives the complete SQS event as published to Redis:
 
 ```json
 {
-    "Records": [
-        {
-            "messageId": "<uuid-v4>",
-            "receiptHandle": "<random string>",
-            "body": "Test message.",
-            "md5OfBody": "e62f489304eae26e9960977058872c3f",
-            "attributes": {
-                "ApproximateReceiveCount": "2",
-                "SentTimestamp": "1520621625029",
-                "SenderId": "sender",
-                "ApproximateFirstReceiveTimestamp": "1520621634884"
-            },
-            "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:SQSQueue",
-            "eventSource": "aws:sqs",
-            "awsRegion": "ap-northeast-1",
-            "messageAttributes": {
-                "Attribute3": {
-                    "binaryValue": "MTEwMA==",
-                    "stringListValues": ["abc", "123"],
-                    "binaryListValues": ["MA==", "MQ==", "MA=="],
-                    "dataType": "Binary"
-                },
-                "Attribute2": {
-                    "stringValue": "123",
-                    "stringListValues": [],
-                    "binaryListValues": ["MQ==", "MA=="],
-                    "dataType": "Number"
-                },
-                "Attribute1": {
-                    "stringValue": "AttributeValue1",
-                    "stringListValues": [],
-                    "binaryListValues": [],
-                    "dataType": "String"
-                }
-            }
+  "Records": [
+    {
+      "messageId": "<uuid-v4>",
+      "receiptHandle": "<random string>",
+      "body": "Test message.",
+      "md5OfBody": "e62f489304eae26e9960977058872c3f",
+      "attributes": {
+        "ApproximateReceiveCount": "2",
+        "SentTimestamp": "1520621625029",
+        "SenderId": "sender",
+        "ApproximateFirstReceiveTimestamp": "1520621634884"
+      },
+      "eventSourceARN": "arn:aws:sqs:ap-northeast-1:123456789012:SQSQueue",
+      "eventSource": "aws:sqs",
+      "awsRegion": "ap-northeast-1",
+      "messageAttributes": {
+        "Attribute3": {
+          "binaryValue": "MTEwMA==",
+          "stringListValues": ["abc", "123"],
+          "binaryListValues": ["MA==", "MQ==", "MA=="],
+          "dataType": "Binary"
+        },
+        "Attribute2": {
+          "stringValue": "123",
+          "stringListValues": [],
+          "binaryListValues": ["MQ==", "MA=="],
+          "dataType": "Number"
+        },
+        "Attribute1": {
+          "stringValue": "AttributeValue1",
+          "stringListValues": [],
+          "binaryListValues": [],
+          "dataType": "String"
         }
-    ]
+      }
+    }
+  ]
 }
 ```
 
