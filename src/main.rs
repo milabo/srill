@@ -16,6 +16,9 @@ struct Args {
     /// Redis URL
     #[clap(long, value_parser, default_value = "redis://localhost:6379")]
     redis_url: String,
+    /// Port used by cargo lambda invoke/watch
+    #[clap(long, value_parser)]
+    invoke_port: Option<u16>,
     /// Channel-Lambda pairs in format "channel1=lambda1,channel2=lambda2"
     #[clap(long, value_parser, value_delimiter = ',')]
     channels: Option<Vec<String>>,
@@ -39,7 +42,15 @@ struct ChannelLambdaPair {
 #[derive(Debug, serde::Deserialize)]
 struct Config {
     redis_url: Option<String>,
+    invoke_port: Option<u16>,
     channels: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone)]
+struct ResolvedConfig {
+    pairs: Vec<ChannelLambdaPair>,
+    redis_url: String,
+    invoke_port: u16,
 }
 
 fn parse_channel_pairs(channels: &[String]) -> anyhow::Result<Vec<ChannelLambdaPair>> {
@@ -70,8 +81,12 @@ fn load_config(config_path: &str) -> anyhow::Result<Config> {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    // Determine channel-lambda pairs from various sources
-    let (pairs, redis_url) = get_channel_lambda_pairs(&args).await?;
+    // Keep transport settings separate from channel mappings so callers can
+    // override a checked-in config file with a one-off local watch port.
+    let resolved = get_channel_lambda_pairs(&args).await?;
+    let pairs = resolved.pairs;
+    let redis_url = resolved.redis_url;
+    let invoke_port = resolved.invoke_port;
 
     if pairs.is_empty() {
         return Err(anyhow::anyhow!(
@@ -80,6 +95,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     println!("Starting srill with {} channel(s):", pairs.len());
+    println!("Using invoke port: {}", invoke_port);
     for pair in &pairs {
         println!("  {} => {}", pair.channel, pair.lambda);
     }
@@ -96,6 +112,7 @@ async fn main() -> anyhow::Result<()> {
                 sub::subscribe(&redis_url, &pair.channel, move |body| match invoke::invoke(
                     &pair.lambda,
                     body,
+                    invoke_port,
                 ) {
                     Ok(result) => {
                         if result.success {
@@ -125,39 +142,45 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn get_channel_lambda_pairs(args: &Args) -> anyhow::Result<(Vec<ChannelLambdaPair>, String)> {
+async fn get_channel_lambda_pairs(args: &Args) -> anyhow::Result<ResolvedConfig> {
     let mut pairs = Vec::new();
     let mut redis_url = args.redis_url.clone();
+    let mut invoke_port = 9000;
 
     // Priority 1: Config file
     if let Some(config_path) = &args.config {
         let config = load_config(config_path)?;
 
-        // Override redis_url and mode if specified in config
+        // File-backed defaults make local setups reproducible, but we still let
+        // explicit CLI flags win for ad-hoc port changes during development.
         if let Some(config_redis_url) = config.redis_url {
             redis_url = config_redis_url;
+        }
+        if let Some(config_invoke_port) = config.invoke_port {
+            invoke_port = config_invoke_port;
         }
 
         for (channel, lambda) in config.channels {
             pairs.push(ChannelLambdaPair { channel, lambda });
         }
-        return Ok((pairs, redis_url));
-    }
-
-    // Priority 2: --channels argument
-    if let Some(channels) = &args.channels {
-        let pairs = parse_channel_pairs(channels)?;
-        return Ok((pairs, redis_url));
-    }
-
-    // Priority 3: Legacy single channel/lambda arguments
-    if let (Some(channel), Some(lambda)) = (&args.channel, &args.lambda) {
+    } else if let Some(channels) = &args.channels {
+        // `--channels` is mutually exclusive with config file channel mappings,
+        // but transport flags should remain independently overrideable.
+        pairs = parse_channel_pairs(channels)?;
+    } else if let (Some(channel), Some(lambda)) = (&args.channel, &args.lambda) {
         pairs.push(ChannelLambdaPair {
             channel: channel.clone(),
             lambda: lambda.clone(),
         });
-        return Ok((pairs, redis_url));
     }
 
-    Ok((pairs, redis_url))
+    if let Some(cli_invoke_port) = args.invoke_port {
+        invoke_port = cli_invoke_port;
+    }
+
+    Ok(ResolvedConfig {
+        pairs,
+        redis_url,
+        invoke_port,
+    })
 }
