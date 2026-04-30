@@ -21,6 +21,13 @@ First, run cargo lambda watch:
 cargo lambda watch
 ```
 
+If you change the watch port, configure the same port in `srill`:
+
+```sh
+cargo lambda watch --invoke-port 9011
+srill --invoke-port 9011 --channels channel1=lambda-function1
+```
+
 ### Multiple Channels
 
 Start srill with multiple channel-lambda pairs:
@@ -35,6 +42,7 @@ Create a `srill.toml` configuration file:
 
 ```toml
 redis_url = "redis://localhost:6379"
+invoke_port = 9000
 
 [channels]
 channel1 = "lambda-function1"
@@ -130,14 +138,20 @@ The Lambda function receives the complete SQS event as published to Redis:
 ### Options
 
 - `--redis-url`: Redis URL (default: `redis://localhost:6379`)
+- `--invoke-port`: Port passed to `cargo lambda invoke` (default: `9000`)
 - `--channels`: Channel-Lambda pairs in format `channel1=lambda1,channel2=lambda2`
 - `--config`: Path to TOML configuration file
+
+When both `--invoke-port` and `srill.toml` specify a port, the CLI option wins.
 
 ### Examples
 
 ```sh
 # Multiple channels via command line
 srill --redis-url redis://localhost:6379 --channels user-events=user-lambda,order-events=order-lambda
+
+# Matching a non-default cargo lambda watch port
+srill --invoke-port 9011 --channels user-events=user-lambda
 
 # Using configuration file
 srill --config ./config/srill.toml

@@ -4,6 +4,9 @@
 # Redis connection URL (optional, overrides --redis-url)
 redis_url = "redis://localhost:6379"
 
+# Port used by `cargo lambda watch` / `cargo lambda invoke`
+invoke_port = 9000
+
 # Channel to Lambda function mappings
 [channels]
 user-events = "user-lambda"
